@@ -1,0 +1,42 @@
+image:
+  controller: kubesphere/virtualization-controller:latest
+  gateway: kubesphere/virtualization-gateway:latest
+  pullPolicy: IfNotPresent
+
+clusterSelector: {}
+
+overrides: []
+# - name: cluster-a
+#   selector:
+#     matchLabels:
+#       region: cn-beijing
+#   values:
+#     image:
+#       controller: registry.local/controller:custom
+#     featureFlags:
+#       liveMigration: true
+#     gateway:
+#       nodeSelector:
+#         virtualization: enabled
+
+featureFlags:
+  liveMigration: false
+  sriov: false
+  airgap: false
+
+installPlan:
+  enabled: true
+  matchLabels:
+    virtualization.kubesphere.io/ready: "true"
+
+nodeSelector: {}
+
+resources: {}
+
+airgap:
+  registries: []
+  sbom:
+    enabled: true
+  cosign:
+    keyRef: secrets/cosign.pub
+

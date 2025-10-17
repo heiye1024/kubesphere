@@ -96,12 +96,27 @@ helm-deploy: ; $(info $(M)...Begin to helm-deploy.)  @ ## Helm-deploy.
 	helm upgrade --install ks-core ./config/ks-core -n kubesphere-system --create-namespace
 
 helm-uninstall: ; $(info $(M)...Begin to helm-uninstall.)  @ ## Helm-uninstall.
-	- kubectl delete ns kubesphere-controls-system
-	helm uninstall ks-core -n kubesphere-system
+        - kubectl delete ns kubesphere-controls-system
+        helm uninstall ks-core -n kubesphere-system
+
+# Virtualization extension
+.PHONY: virtualization-build
+virtualization-build: ; $(info $(M)...Building virtualization extension binaries.) @ ## Build virtualization controllers and gateway.
+	CGO_ENABLED=0 go build -o bin/virtualization-controller ./cmd/virtualization-controller
+	CGO_ENABLED=0 go build -o bin/virtualization-gateway ./cmd/virtualization-gateway
+
+.PHONY: virtualization-test
+virtualization-test: ; $(info $(M)...Testing virtualization extension.) @ ## Run virtualization unit tests.
+	go test ./api/virtualization/... ./controllers/virtualization/... ./webhooks/virtualization/... ./pkg/virtualization/...
+
+.PHONY: virtualization-deploy
+virtualization-deploy: ; $(info $(M)...Deploy virtualization manifests.) @ ## Deploy virtualization CRDs and controllers.
+	kubectl apply -f config/crd/bases
+	kustomize build config/virtualization | kubectl apply -f -
 
 # Run tests
 test: vet test-env ;$(info $(M)...Begin to run tests.)  @ ## Run tests.
-	hack/test-go.sh
+        hack/test-go.sh
 
 .PHONY: test-env
 test-env: ;$(info $(M)...Begin to setup test env) @ ## Download unit test libraries e.g. kube-apiserver etcd.

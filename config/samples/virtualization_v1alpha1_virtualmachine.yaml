@@ -1,0 +1,88 @@
+apiVersion: virtualization.kubesphere.io/v1alpha1
+kind: VirtualMachine
+metadata:
+  name: demo-vm
+  namespace: demo
+  labels:
+    kubesphere.io/workspace: demo-workspace
+    kubesphere.io/project: demo-project
+    kubesphere.io/cluster: host
+spec:
+  cpu: "4"
+  memory: "8Gi"
+  cpuModel: host-model
+  dedicatedCPUPlacement: true
+  numaPolicy: strict
+  numa:
+    cells:
+      - id: 0
+        cpus: "0-1"
+        memory: "4Gi"
+        threadsPerCore: 2
+      - id: 1
+        cpus: "2-3"
+        memory: "4Gi"
+  hugepages: 1Gi
+  gpus:
+    - name: render-0
+      deviceType: vgpu
+      resourceName: nvidia.com/mig-1g.10gb
+  powerState: Running
+  disks:
+    - type: system
+      bus: virtio
+      cache: none
+      diskRef:
+        name: root-disk
+      bootOrder: 1
+    - type: data
+      bus: virtio
+      cache: writeback
+      iothread: true
+      diskRef:
+        name: data-disk
+      bootOrder: 2
+      hotplug: true
+  nets:
+    - type: masquerade
+    - type: bridge
+      nadRef:
+        namespace: demo
+        name: backend-net
+      model: virtio
+    - type: sriov
+      nadRef:
+        namespace: demo
+        name: sriov-net
+      sriovResource: intel.com/intel_sriov_netdevice
+      multiqueue: true
+  livenessProbe:
+    periodSeconds: 15
+    timeoutSeconds: 60
+    failureThreshold: 5
+  readinessProbe:
+    periodSeconds: 10
+    timeoutSeconds: 30
+    failureThreshold: 3
+  cloudInit:
+    userData: |
+      #cloud-config
+      hostname: demo-vm
+    sshAuthorizedKeys:
+      - ssh-rsa AAAAB3Nz... demo@example.com
+  console:
+    vnc: true
+    serial: true
+    type: spice
+  liveMigration:
+    enabled: true
+    bandwidth: "512Mi"
+    completionTimeoutSeconds: 600
+    autoConverge: true
+  kubeVirt:
+    spec:
+      template:
+        spec:
+          domain:
+            features:
+              acpi: {}

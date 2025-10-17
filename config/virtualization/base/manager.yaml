@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: virtualization-controller-manager
+  namespace: kubesphere-system
+  labels:
+    app: virtualization-controller
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: virtualization-controller
+  template:
+    metadata:
+      labels:
+        app: virtualization-controller
+    spec:
+      serviceAccountName: virtualization-controller
+      containers:
+        - name: manager
+          image: kubesphere/virtualization-controller:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - --metrics-bind-address=:8080
+            - --health-probe-bind-address=:8081
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 9443
+              name: webhook-server
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081

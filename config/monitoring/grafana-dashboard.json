@@ -1,0 +1,67 @@
+{
+  "title": "KubeSphere Virtualization Overview",
+  "panels": [
+    {
+      "type": "row",
+      "title": "Cluster Level",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Running VMs",
+          "targets": [
+            { "expr": "sum(kubevirt_vmi_phase_running)" }
+          ]
+        },
+        {
+          "type": "graph",
+          "title": "Migrations",
+          "targets": [
+            { "expr": "sum(rate(kubevirt_vmi_migration_attempts_total[5m]))" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Project Level",
+      "panels": [
+        {
+          "type": "table",
+          "title": "VM Power State",
+          "targets": [
+            { "expr": "kubevirt_vmi_phase_running", "format": "table" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "VirtualMachine Details",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "CPU Usage",
+          "targets": [
+            { "expr": "sum(rate(kubevirt_vmi_cpu_usage_seconds_total{vm=\"$vm\"}[5m]))" }
+          ]
+        },
+        {
+          "type": "graph",
+          "title": "Disk Latency",
+          "targets": [
+            { "expr": "virtualization_disk_latency_seconds{vm=\"$vm\"}" }
+          ]
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "vm",
+        "type": "query",
+        "query": "label_values(kubevirt_vmi_phase_running, vm)"
+      }
+    ]
+  }
+}

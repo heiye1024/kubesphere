@@ -1,0 +1,82 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: virtualnets.virtualization.kubesphere.io
+spec:
+  group: virtualization.kubesphere.io
+  names:
+    kind: VirtualNet
+    listKind: VirtualNetList
+    plural: virtualnets
+    singular: virtualnet
+    shortNames:
+      - vmnet
+      - vmnets
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: false
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [nadTemplate]
+              properties:
+                nadTemplate:
+                  type: string
+                  minLength: 1
+                bandwidthLimit:
+                  type: integer
+                  minimum: 1
+                vlan:
+                  type: integer
+                  minimum: 0
+                  maximum: 4094
+                sriovResource:
+                  type: string
+                  pattern: '^[a-z0-9.-]+/[a-z0-9.-]+$'
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  items:
+                    type: object
+      subresources:
+        status: {}
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [nadTemplate]
+              properties:
+                nadTemplate:
+                  type: string
+                  minLength: 1
+                bandwidthLimit:
+                  type: integer
+                  minimum: 1
+                vlan:
+                  type: integer
+                  minimum: 0
+                  maximum: 4094
+                sriovResource:
+                  type: string
+                  pattern: '^[a-z0-9.-]+/[a-z0-9.-]+$'
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  items:
+                    type: object
+      subresources:
+        status: {}

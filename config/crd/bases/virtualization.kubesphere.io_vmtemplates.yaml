@@ -1,0 +1,168 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: vmtemplates.virtualization.kubesphere.io
+spec:
+  group: virtualization.kubesphere.io
+  names:
+    kind: VMTemplate
+    listKind: VMTemplateList
+    plural: vmtemplates
+    singular: vmtemplate
+    shortNames:
+      - vmtemp
+      - vmtemps
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: false
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [parameters]
+              properties:
+                parameters:
+                  type: object
+                  required: [cpu, memory, os, image, networks, disks]
+                  properties:
+                    cpu:
+                      type: string
+                      pattern: '^([1-9][0-9]*|[0-9]+m)$'
+                    memory:
+                      type: string
+                      pattern: '^([1-9][0-9]*)(Mi|Gi)$'
+                    os:
+                      type: string
+                      minLength: 1
+                    image:
+                      type: string
+                      minLength: 1
+                    networks:
+                      type: array
+                      minItems: 1
+                      items:
+                        type: string
+                    disks:
+                      type: array
+                      minItems: 1
+                      items:
+                        type: object
+                        required: [name, size, type]
+                        properties:
+                          name:
+                            type: string
+                            minLength: 1
+                          size:
+                            type: string
+                            pattern: '^([1-9][0-9]*)(Mi|Gi|Ti)$'
+                          type:
+                            type: string
+                            enum: [system, data, ephemeral]
+                constraints:
+                  type: object
+                  properties:
+                    minCPU:
+                      type: string
+                      pattern: '^([1-9][0-9]*|[0-9]+m)$'
+                    maxCPU:
+                      type: string
+                      pattern: '^([1-9][0-9]*|[0-9]+m)$'
+                    minMemory:
+                      type: string
+                      pattern: '^([1-9][0-9]*)(Mi|Gi)$'
+                    maxMemory:
+                      type: string
+                      pattern: '^([1-9][0-9]*)(Mi|Gi)$'
+                uiHints:
+                  type: object
+                  additionalProperties:
+                    type: string
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  items:
+                    type: object
+      subresources:
+        status: {}
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [parameters]
+              properties:
+                parameters:
+                  type: object
+                  required: [cpu, memory, os, image, networks, disks]
+                  properties:
+                    cpu:
+                      type: string
+                      pattern: '^([1-9][0-9]*|[0-9]+m)$'
+                    memory:
+                      type: string
+                      pattern: '^([1-9][0-9]*)(Mi|Gi)$'
+                    os:
+                      type: string
+                      minLength: 1
+                    image:
+                      type: string
+                      minLength: 1
+                    networks:
+                      type: array
+                      minItems: 1
+                      items:
+                        type: string
+                    disks:
+                      type: array
+                      minItems: 1
+                      items:
+                        type: object
+                        required: [name, size, type]
+                        properties:
+                          name:
+                            type: string
+                            minLength: 1
+                          size:
+                            type: string
+                            pattern: '^([1-9][0-9]*)(Mi|Gi|Ti)$'
+                          type:
+                            type: string
+                            enum: [system, data, ephemeral]
+                constraints:
+                  type: object
+                  properties:
+                    minCPU:
+                      type: string
+                      pattern: '^([1-9][0-9]*|[0-9]+m)$'
+                    maxCPU:
+                      type: string
+                      pattern: '^([1-9][0-9]*|[0-9]+m)$'
+                    minMemory:
+                      type: string
+                      pattern: '^([1-9][0-9]*)(Mi|Gi)$'
+                    maxMemory:
+                      type: string
+                      pattern: '^([1-9][0-9]*)(Mi|Gi)$'
+                uiHints:
+                  type: object
+                  additionalProperties:
+                    type: string
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  items:
+                    type: object
+      subresources:
+        status: {}

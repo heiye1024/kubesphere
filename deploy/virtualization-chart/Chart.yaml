@@ -1,0 +1,7 @@
+apiVersion: v2
+name: kubesphere-virtualization
+version: 0.1.0
+appVersion: 0.1.0
+description: KubeSphere Virtualization extension packaged as Helm chart.
+type: application
+dependencies: []

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: virtualization-controller-manager
+  labels:
+    app: virtualization-controller
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: virtualization-controller
+  template:
+    metadata:
+      labels:
+        app: virtualization-controller
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: virtualization-controller
+      containers:
+        - name: manager
+          image: {{ .Values.image.controller }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --feature-gates=LiveMigration={{ .Values.featureFlags.liveMigration }}
+            - --feature-gates=SRIOV={{ .Values.featureFlags.sriov }}
+          env:
+            - name: INSTALL_PLAN_SELECTOR
+              value: {{ toJson .Values.installPlan.matchLabels | quote }}

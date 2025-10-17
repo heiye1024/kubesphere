@@ -1,0 +1,80 @@
+name: Virtualization Extension CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - run: gofmt -l ./api/virtualization ./controllers/virtualization ./webhooks/virtualization
+      - run: golangci-lint run ./...
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm install
+        working-directory: frontend/virtualization
+      - run: npm run lint
+        working-directory: frontend/virtualization
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - run: go test ./api/virtualization/... ./controllers/virtualization/... ./webhooks/virtualization/... ./pkg/virtualization/...
+
+  kind-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        virtualization:
+          - enabled
+          - disabled
+        storage:
+          - ceph
+          - nfs
+        cni:
+          - calico
+          - flannel
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: virtualization-${{ matrix.virtualization }}-${{ matrix.storage }}-${{ matrix.cni }}
+      - name: Run e2e tests
+        run: |
+          go test -v ./tests/e2e -timeout 60m
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm install
+        working-directory: frontend/virtualization
+      - run: npm run build
+        working-directory: frontend/virtualization
+
+  helm-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package chart
+        run: helm package deploy/virtualization-chart -d dist

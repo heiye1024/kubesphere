@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: virtualization-alerts
+  namespace: kubesphere-monitoring-system
+spec:
+  groups:
+    - name: virtualization.vm
+      rules:
+        - alert: VirtualMachineMigrationFailed
+          expr: kubevirt_vmi_migration_failed_total > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "VM migration failures detected"
+            description: "{{ $value }} migrations have failed within the last 5 minutes."
+        - alert: DataVolumeImportTimeout
+          expr: increase(kubevirt_cdi_dv_import_duration_seconds_sum[15m]) > 900
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "DataVolume import exceeded timeout"
+            description: "Imports are taking longer than expected."
+        - alert: VirtualMachineNoHeartbeat
+          expr: kubevirt_vmi_up_total == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "VM heartbeat missing"
+            description: "No heartbeat metrics reported for VirtualMachine."
+        - alert: VirtualDiskHighLatency
+          expr: avg_over_time(virtualization_disk_latency_seconds[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Virtual disk latency high"
+            description: "Disk latency above 50ms threshold."
